@@ -1,0 +1,29 @@
+// Конфиг Vite для React-фронтенда.
+// В продакшне делаем обычную статическую сборку, которую отдаст nginx в контейнере web.
+// В dev-режиме (npm run dev) прокси API и WS на backend:4000, чтобы можно было запускать
+// без отдельного nginx.
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    host: "0.0.0.0",
+    port: 5173,
+    proxy: {
+      "/api": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+      },
+      "/ws": {
+        target: "ws://localhost:4000",
+        ws: true,
+        changeOrigin: true,
+      },
+    },
+  },
+  build: {
+    outDir: "dist",
+    sourcemap: false,
+  },
+});

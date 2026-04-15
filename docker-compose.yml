@@ -1,0 +1,57 @@
+# Docker Compose для мини-чата.
+# Запускает три сервиса: PostgreSQL, backend-API (Express + WS) и frontend (React в nginx).
+# Порты наружу пробрасываются только на 127.0.0.1 — во внешний мир трафик идёт
+# через хостовый nginx + Let's Encrypt.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: testchat-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: testchat-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      API_PORT: ${API_PORT}
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+    ports:
+      # Только на localhost хоста, хостовый nginx проксирует сюда
+      - "127.0.0.1:${API_PORT}:${API_PORT}"
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE: ${VITE_API_BASE}
+        VITE_WS_PATH: ${VITE_WS_PATH}
+    container_name: testchat-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "127.0.0.1:8080:80"
+
+volumes:
+  pgdata:

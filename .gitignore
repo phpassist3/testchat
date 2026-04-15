@@ -1,0 +1,42 @@
+# Зависимости
+node_modules/
+*/node_modules/
+
+# Сборки
+dist/
+build/
+*/dist/
+*/build/
+
+# Логи
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Переменные окружения
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Редакторы
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Кэш
+.cache/
+.parcel-cache/
+.eslintcache
+
+# Данные PostgreSQL (bind mount в разработке)
+pgdata/
+postgres-data/
+
+# Миграции, сгенерированные drizzle-kit (хранятся в /backend/drizzle)
+# разрешаем их, игнорируем только snapshot-временные файлы
+*/drizzle/meta/_journal.json.tmp

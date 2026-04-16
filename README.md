@@ -1,18 +1,18 @@
 # Мини-чат на WebSocket
 
-Небольшое full-stack приложение — чат с регистрацией, двумя комнатами,
+Чат с регистрацией, двумя комнатами,
 WebSocket-рассылкой сообщений, сохранением истории в PostgreSQL, онлайн-статусом
 и индикатором «печатает…».
 
-Боевой инстанс: **https://chat.phpassist.dev**
+для теста: **https://chat.phpassist.dev**
 
 ## Стек
 
-- **Backend:** Node.js 20, Express, TypeScript, WebSocket (`ws`), Drizzle ORM, JWT, zod, bcryptjs
+- **Backend:** Node.js 20, Express, TypeScript, WebSocket, Drizzle ORM, JWT, zod, bcryptjs
 - **Frontend:** React 18, TypeScript, Vite, нативный WebSocket API
 - **База данных:** PostgreSQL 16
-- **Инфраструктура:** Docker + Docker Compose, Nginx, Let's Encrypt / Certbot
-- **Стиль кода:** строгий TypeScript, комментарии на русском
+- **Инфраструктура:** Docker + Docker Compose, Nginx, Let's Encrypt, Certbot
+- **Стиль кода:** TypeScript, комментарии к коду
 
 ## Возможности
 
@@ -26,55 +26,7 @@ WebSocket-рассылкой сообщений, сохранением исто
 - Автоматическое переподключение WebSocket, keep-alive ping/pong.
 - Адаптивная вёрстка (работает на мобильных).
 
-## Структура проекта
 
-```
-.
-├── backend/              # Node.js + Express + WS API
-│   ├── src/
-│   │   ├── index.ts             # точка входа (HTTP + WS)
-│   │   ├── config/env.ts        # валидация переменных окружения (zod)
-│   │   ├── db/
-│   │   │   ├── schema.ts        # схема БД для drizzle
-│   │   │   ├── index.ts         # инстанс drizzle + postgres.js
-│   │   │   └── migrate.ts       # применение миграций + посев комнат
-│   │   ├── auth/
-│   │   │   ├── jwt.ts           # выпуск и проверка JWT
-│   │   │   ├── password.ts      # обёртка над bcrypt
-│   │   │   └── middleware.ts    # authRequired middleware
-│   │   ├── routes/
-│   │   │   ├── auth.ts          # /api/auth/register|login|me
-│   │   │   └── rooms.ts         # /api/rooms и /api/rooms/:slug/messages
-│   │   └── ws/
-│   │       ├── server.ts        # WebSocket-сервер (join/message/typing)
-│   │       └── presence.ts      # in-memory онлайн-статус
-│   ├── drizzle/                 # SQL-миграции
-│   ├── Dockerfile
-│   └── package.json
-├── frontend/             # React + TS + Vite
-│   ├── src/
-│   │   ├── main.tsx
-│   │   ├── App.tsx              # роутинг auth ↔ chat
-│   │   ├── api.ts               # REST-клиент
-│   │   ├── ws.ts                # клиентский WebSocket с автореконнектом
-│   │   ├── types.ts             # общие типы
-│   │   ├── index.css            # стили + адаптивная вёрстка
-│   │   └── pages/
-│   │       ├── Login.tsx
-│   │       ├── Register.tsx
-│   │       └── Chat.tsx         # основной экран чата
-│   ├── nginx.conf               # конфиг nginx внутри контейнера frontend
-│   ├── Dockerfile
-│   └── package.json
-├── deploy/
-│   ├── deploy.sh                # deploy-скрипт на сервере
-│   └── nginx/
-│       ├── chat.phpassist.dev.conf            # боевой конфиг (HTTPS + WS proxy)
-│       └── chat.phpassist.dev.bootstrap.conf  # временный конфиг для первого выпуска SSL
-├── docker-compose.yml
-├── .env.example
-└── README.md
-```
 
 ## Быстрый старт (локально)
 
@@ -159,24 +111,6 @@ sudo docker compose up --build -d
 Сертификат Let's Encrypt автоматически обновляется по systemd-таймеру certbot;
 при обновлении он вызывает `nginx reload`.
 
-## Архитектура
-
-```
-Интернет (HTTPS)
-      │
-┌─────▼─────────────┐
-│   Хостовый nginx  │  ← SSL termination, reverse proxy, WS upgrade
-│   (системный)     │
-└────────┬──────────┘
-         │  /          ──► 127.0.0.1:8080  (frontend-container)
-         │  /api/      ──► 127.0.0.1:4000  (api-container)
-         │  /ws        ──► 127.0.0.1:4000  (api-container, WebSocket)
-         ▼
-┌───────────────────┐   ┌───────────────────┐   ┌────────────────────┐
-│  testchat-web     │   │  testchat-api     │   │  testchat-postgres │
-│  (nginx + SPA)    │   │  (Node + WS)      │──►│  (PostgreSQL 16)   │
-└───────────────────┘   └───────────────────┘   └────────────────────┘
-```
 
 ## Протокол WebSocket
 
@@ -212,7 +146,3 @@ cd frontend
 npm install
 npm run dev        # Vite dev-сервер на :5173 с проксированием /api и /ws на :4000
 ```
-
-## Лицензия
-
-MIT © phpassist3 <phpassist3@gmail.com>
